@@ -6,6 +6,3 @@
 .idea
 npm-debug.log
 node_modules
-dist/
-coverage/
-__snapshots__
