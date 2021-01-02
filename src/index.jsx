@@ -20,7 +20,7 @@ class FlipPage extends Component {
     super(props);
 
     this.state = {
-      page: props.startAt, // current index of page
+      page: 0,
       startY: -1, // start position of swipe
       diffY: 0, // diffYerence between last swipe position and current position
       timestamp: 0, // time elapsed between two swipes
@@ -50,28 +50,9 @@ class FlipPage extends Component {
     this.onStartSwipingCalled = false;
   }
 
-  componentDidMount() {
-    const { showHint, showSwipeHint } = this.props;
+  componentDidMount() {}
 
-    if (showHint) {
-      this.hintTimeout = setTimeout(() => this.showHint(), showSwipeHint ? 1800 : 1000);
-    }
-  }
-
-  componentWillUnmount() {
-    clearTimeout(this.hintTimeout);
-    clearTimeout(this.hintHideTimeout);
-  }
-
-  getHeight() {
-    const { responsive } = this.props;
-    return !responsive ? `${this.props.height}px` : '100%';
-  }
-
-  getWidth() {
-    const { responsive } = this.props;
-    return !responsive ? `${this.props.width}px` : '100%';
-  }
+  componentWillUnmount() {}
 
   flatChildren() {
     return Array.prototype.flat.call(this.props.children);
@@ -126,31 +107,22 @@ class FlipPage extends Component {
   }
 
   hasNextPage() {
-    const { loopForever } = this.props;
-    return !this.isLastPage() || loopForever;
+    return !this.isLastPage();
   }
 
   hasPreviousPage() {
-    const { loopForever } = this.props;
-    return !this.isFirstPage() || loopForever;
+    return !this.isFirstPage();
   }
 
   startMoving(e) {
     // prevent the button's and a's to not be clickable.
-    const { tagName, className } = e.target;
+    const { tagName } = e.target;
 
     if (tagName === 'BUTTON' || tagName === 'A') {
       return;
     }
 
     doNotMove(e);
-
-    const { swipeImmune } = this.props;
-    const cancel = swipeImmune.some((testedClassName) => className.indexOf(testedClassName) !== -1);
-
-    if (cancel) {
-      return;
-    }
 
     const { posX, posY } = getPosition(e);
 
@@ -167,7 +139,7 @@ class FlipPage extends Component {
     const { posX, posY } = getPosition(e);
 
     const {
-      orientation, treshold, maxAngle, perspective, reverse,
+      orientation, treshold, maxAngle, perspective,
     } = this.props;
     const {
       startX, startY, diffX, diffY, direction, lastDirection,
@@ -180,9 +152,9 @@ class FlipPage extends Component {
       const angle = (diffToUse / 250) * 180;
       let useMaxAngle = false;
       if (direction === 'up' || direction === 'left') {
-        useMaxAngle = reverse ? !this.hasPreviousPage() : !this.hasNextPage();
+        useMaxAngle = !this.hasNextPage();
       } else if (direction === 'down' || direction === 'right') {
-        useMaxAngle = reverse ? !this.hasNextPage() : !this.hasPreviousPage();
+        useMaxAngle = !this.hasPreviousPage();
       }
 
       const rotate = Math.min(Math.abs(angle), useMaxAngle ? maxAngle : 180);
@@ -343,24 +315,23 @@ class FlipPage extends Component {
   gotoNextPage() {
     if (!this.hasNextPage() || !this.state.canAnimate) return;
 
-    const { onStartPageChange, reverse } = this.props;
+    const { onStartPageChange } = this.props;
     // Send an event before the end of the change page animation
     onStartPageChange(this.state.page, 'next');
     // We separe the next/previous logic to the right/left logic
-    if (!reverse) this.turnRightOrDown(this.incrementPage);
-    else this.turnLeftOrUp(this.incrementPage);
+
+    this.turnLeftOrUp(this.incrementPage);
   }
 
   gotoPreviousPage() {
     if (!this.hasPreviousPage() || !this.state.canAnimate) return;
 
-    const { onStartPageChange, reverse } = this.props;
+    const { onStartPageChange } = this.props;
 
     // Send an event before the end of the change page animation
     onStartPageChange(this.state.page, 'prev');
     // We separe the next/previous logic to the right/left logic
-    if (!reverse) this.turnLeftOrUp(this.decrementPage);
-    else this.turnRightOrDown(this.decrementPage);
+    this.turnRightOrDown(this.decrementPage);
   }
 
   gotoPage(page) {
@@ -377,7 +348,7 @@ class FlipPage extends Component {
   }
 
   stopMoving(cb) {
-    const { reverse, onStopSwiping } = this.props;
+    const { onStopSwiping } = this.props;
     const {
       timestamp, angle, direction, lastDirection,
     } = this.state;
@@ -397,13 +368,11 @@ class FlipPage extends Component {
       onStopSwiping();
 
       if (goUpOrRight) {
-        if (!reverse) this.gotoNextPage();
-        else this.gotoPreviousPage();
+        this.gotoPreviousPage();
       }
 
       if (goDownOrLeft) {
-        if (!reverse) this.gotoPreviousPage();
-        else this.gotoNextPage();
+        this.gotoNextPage();
       }
 
       if (typeof cb === 'function') {
@@ -413,26 +382,25 @@ class FlipPage extends Component {
   }
 
   beforeItem() {
-    const lastPage = Children.count(this.props.children);
-    const { firstComponent, loopForever } = this.props;
+    const { firstComponent } = this.props;
     const children = this.flatChildren();
 
     if (!this.isFirstPage()) {
       return children[this.state.page - 1];
     }
 
-    return loopForever ? children[lastPage - 1] : firstComponent;
+    return firstComponent;
   }
 
   afterItem() {
-    const { lastComponent, loopForever } = this.props;
+    const { lastComponent } = this.props;
     const children = this.flatChildren();
 
     if (!this.isLastPage()) {
       return children[this.state.page + 1];
     }
 
-    return loopForever ? children[0] : lastComponent;
+    return lastComponent;
   }
 
   mouseLeave() {
@@ -470,10 +438,6 @@ class FlipPage extends Component {
       maskOpacity,
       pageBackground,
       animationDuration,
-      flipOnTouch,
-      disableSwipe,
-      reverse,
-      noShadow,
     } = this.props;
 
     const style = generateStyles(
@@ -517,8 +481,8 @@ class FlipPage extends Component {
       />
     );
 
-    const beforeItem = reverse ? this.afterItem() : this.beforeItem();
-    const afterItem = reverse ? this.beforeItem() : this.afterItem();
+    const beforeItem = this.beforeItem();
+    const afterItem = this.afterItem();
 
     const clonedBeforeItem = beforeItem ? (
       <FlipPageItem
@@ -533,8 +497,7 @@ class FlipPage extends Component {
       />
     ) : null;
 
-    const allowSwipe = (flipOnTouch && !disableSwipe) || !flipOnTouch;
-    const onStartTouching = allowSwipe ? this.startMoving : doNotMove;
+    const onStartTouching = this.startMoving;
 
     return (
       <div
@@ -567,7 +530,7 @@ class FlipPage extends Component {
               {pageItem}
             </div>
             <div style={m(mask, maskReverse)} />
-            {!noShadow && <div style={m(gradient, gradientFirstHalf)} />}
+            <div style={m(gradient, gradientFirstHalf)} />
           </div>
           <div style={m(face, back)}>
             <div style={cut}>
@@ -585,7 +548,7 @@ class FlipPage extends Component {
               </div>
             </div>
             <div style={m(mask, maskReverse)} />
-            {!noShadow && <div style={m(gradient, gradientSecondHalf)} />}
+            <div style={m(gradient, gradientSecondHalf)} />
           </div>
           <div style={m(face, back)}>
             <div style={m(part, after, cut, firstCut)}>
@@ -601,82 +564,23 @@ class FlipPage extends Component {
     const {
       style,
       className,
-      orientation,
-      showSwipeHint,
-      showTouchHint,
-      flipOnTouch,
-      flipOnTouchZone,
-      disableSwipe,
-      reverse,
+      width,
+      height,
     } = this.props;
 
     const children = this.flatChildren();
 
     const containerStyle = m(style, {
-      height: this.getHeight(),
+      height,
       position: 'relative',
-      width: this.getWidth(),
+      width,
     });
-
-    const touchZoneStyle = {
-      height: orientation === 'vertical' ? `${flipOnTouchZone}%` : '100%',
-      position: 'absolute',
-      touchAction: 'none',
-      width: orientation === 'vertical' ? '100%' : `${flipOnTouchZone}%`,
-      zIndex: 3,
-    };
-
-    const leftZone = { left: 0, top: 0 };
-    const rightZone = { bottom: 0, right: 0 };
-
-    const previousPageTouchZoneStyle = m(touchZoneStyle, reverse ? rightZone : leftZone);
-    const nextPageTouchZoneStyle = m(touchZoneStyle, reverse ? leftZone : rightZone);
-
-    const onStartTouching = !disableSwipe ? this.startMoving : doNotMove;
-    const gotoPreviousPage = () => {
-      this.stopMoving(() => this.gotoPreviousPage());
-    };
-    const gotoNextPage = () => {
-      this.stopMoving(() => this.gotoNextPage());
-    };
 
     // all the pages are rendered once, to prevent glitching
     // (React would reload the child page and cause a image glitch)
     return (
       <div style={containerStyle} className={className}>
         {Children.map(children, (page, key) => this.renderPage(page, key))}
-        {showSwipeHint && <div className={`rfp-swipeHint rfp-swipeHint--${orientation}`} />}
-        {
-          flipOnTouch && (
-            <div>
-              <div
-                role="presentation"
-                onMouseDown={onStartTouching}
-                onTouchStart={onStartTouching}
-                onMouseUp={gotoPreviousPage}
-                onMouseMove={this.moveGesture}
-                onTouchMove={this.moveGesture}
-                onTouchEnd={this.stopMoving}
-                onMouseLeave={this.mouseLeave}
-                style={previousPageTouchZoneStyle}
-                className="rfp-touchZone rfp-touchZone-previous"
-              />
-              <div
-                role="presentation"
-                onMouseDown={onStartTouching}
-                onTouchStart={onStartTouching}
-                onMouseUp={gotoNextPage}
-                onMouseMove={this.moveGesture}
-                onTouchMove={this.moveGesture}
-                onTouchEnd={this.stopMoving}
-                onMouseLeave={this.mouseLeave}
-                style={nextPageTouchZoneStyle}
-                className="rfp-touchZone rfp-touchZone-next"
-              />
-              {showTouchHint && <div className={`rfp-touchHint rfp-touchHint--${orientation}`} />}
-            </div>
-          )
-        }
       </div>
     );
   }
@@ -693,9 +597,6 @@ FlipPage.defaultProps = {
   pageBackground: '#fff',
   firstComponent: null,
   lastComponent: null,
-  showHint: false,
-  showSwipeHint: false,
-  showTouchHint: false,
   uncutPages: false,
   style: {},
   height: 480,
@@ -706,15 +607,6 @@ FlipPage.defaultProps = {
   onStopSwiping: () => {},
   className: '',
   flipOnLeave: false,
-  loopForever: false, // loop back to first page after last one
-  flipOnTouch: false,
-  flipOnTouchZone: 10,
-  disableSwipe: false,
-  responsive: false,
-  startAt: 0,
-  reverse: false,
-  swipeImmune: [],
-  noShadow: false,
 };
 
 FlipPage.propTypes = {
@@ -732,9 +624,6 @@ FlipPage.propTypes = {
   firstComponent: PropTypes.element,
   flipOnLeave: PropTypes.bool,
   lastComponent: PropTypes.element,
-  showHint: PropTypes.bool,
-  showSwipeHint: PropTypes.bool,
-  showTouchHint: PropTypes.bool,
   uncutPages: PropTypes.bool,
   style: PropTypes.object, // eslint-disable-line react/forbid-prop-types
   height: PropTypes.number,
@@ -744,15 +633,6 @@ FlipPage.propTypes = {
   onStartSwiping: PropTypes.func,
   onStopSwiping: PropTypes.func,
   className: PropTypes.string,
-  loopForever: PropTypes.bool,
-  flipOnTouch: PropTypes.bool,
-  flipOnTouchZone: PropTypes.number,
-  disableSwipe: PropTypes.bool,
-  responsive: PropTypes.bool,
-  startAt: PropTypes.number,
-  reverse: PropTypes.bool,
-  swipeImmune: PropTypes.arrayOf(PropTypes.string),
-  noShadow: PropTypes.bool,
 };
 
 export default FlipPage;

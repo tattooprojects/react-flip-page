@@ -31,28 +31,10 @@
         "flipboard"
     ],
     "scripts": {
-        "prebuild": "check-dependencies",
-        "pretest": "check-dependencies",
         "build": "webpack",
         "lint": "eslint --ext .jsx --ext .js --ignore-pattern *spec* --quiet src/",
         "test": "jest -u",
         "test:coverage": "jest --coverage"
-    },
-    "precommit": [
-        "lint",
-        "test"
-    ],
-    "jest": {
-        "setupTestFrameworkScriptFile": "<rootDir>/src/enzymeSetup.js",
-        "moduleNameMapper": {
-            "\\.(css|svg)$": "identity-obj-proxy"
-        },
-        "coverageDirectory": "coverage",
-        "coveragePathIgnorePatterns": [
-            "<rootDir>/dist/",
-            "<rootDir>/src/enzymeSetup.js"
-        ],
-        "testURL": "http://localhost"
     },
     "dependencies": {
         "prop-types": "^15.6.2",
