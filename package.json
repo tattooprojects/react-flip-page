@@ -1,27 +1,14 @@
 {
     "name": "react-flip-page",
-    "version": "1.6.4",
-    "description": "A React.js implementation of the Flipboard page swipe.",
+    "version": "0.0.1",
+    "description": "Fork",
     "main": "dist/index.js",
     "files": [
         "dist/"
     ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/darenju/react-flip-page.git"
-    },
-    "author": "Julien Fradin",
-    "contributors": [
-        "Everton Nikolas de Oliveira <enikolas.oliveira@gmail.com> (https://br.linkedin.com/in/enikolas/en)",
-        "Dmitry Buravtsov (https://github.com/DimaBur)",
-        "slevy85 (https://github.com/slevy85)",
-        "Konstantin Komelin (https://komelin.com/)"
-    ],
+    "author": "Jon Andersen",
     "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/darenju/react-flip-page/issues"
-    },
-    "homepage": "https://github.com/darenju/react-flip-page",
+    "bugs": {},
     "keywords": [
         "react-component",
         "react",
@@ -32,9 +19,7 @@
     ],
     "scripts": {
         "build": "webpack",
-        "lint": "eslint --ext .jsx --ext .js --ignore-pattern *spec* --quiet src/",
-        "test": "jest -u",
-        "test:coverage": "jest --coverage"
+        "lint": "eslint --ext .jsx --ext .js --ignore-pattern *spec* --quiet src/"
     },
     "dependencies": {
         "prop-types": "^15.6.2",
